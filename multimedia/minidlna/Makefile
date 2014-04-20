@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=minidlna
-PKG_VERSION:=1.0.24
+PKG_VERSION:=1.1.2
 PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)_$(PKG_VERSION)_src.tar.gz
-PKG_SOURCE_URL:=@SF/minidlna
-PKG_MD5SUM:=be9b4c91e3fcde592dc3f9828098ca0f
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE_URL:=@SF/project/minidlna/minidlna/$(PKG_VERSION)/
+PKG_MD5SUM:=65cebffaf9b57bf30fbfcf2a3a3253e6
 
 PKG_BUILD_PARALLEL:=0
 PKG_BUILD_DEPENDS:=util-linux
@@ -77,7 +77,7 @@ MAKE_VARS +=\
 
 define Package/minidlna/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/minidlna $(1)/usr/bin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/minidlnad $(1)/usr/bin/
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/minidlna.init $(1)/etc/init.d/minidlna
 	$(INSTALL_DIR) $(1)/etc/config
