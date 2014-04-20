@@ -1,0 +1,11 @@
+#!/bin/sh
+#
+# ACTION=(periodic stratum step)
+#
+
+case "$ACTION" in
+stratum|step)
+	/usr/bin/logger "aiccu(hotplug.d/ntp): retrying aiccu because ntp got $ACTION update"
+	/etc/init.d/aiccu retry
+;;
+esac

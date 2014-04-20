@@ -1,0 +1,20 @@
+#!/bin/sh
+#
+source /etc/functions.sh
+
+config_load aiccu
+INTERFACE_ISAICCU=false
+for cfgs_section in $CONFIG_SECTIONS; do
+	config_get aiccu_iface $cfgs_section interface
+	if [ "$INTERFACE" == "$aiccu_iface" ]; then
+		INTERFACE_ISAICCU=true
+        break
+	fi
+done
+
+# Retry to reconnect aiccu on events of other interfaces (as there is way to detect all wan interfaces)
+# Actually, it might be a config list of interesting interfaces for aiccu (defaults to wan)
+if ! $INTERFACE_ISAICCU; then
+	logger "aiccu(hotplug.d/iface): retrying aiccu because $INTERFACE went $ACTION"
+	/etc/init.d/aiccu retry
+fi
