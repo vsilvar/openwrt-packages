@@ -8,12 +8,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=iftop
-PKG_VERSION:=0.17
-PKG_RELEASE:=2
+PKG_VERSION:=1.0pre4
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://www.ex-parrot.com/~pdw/iftop/download
-PKG_MD5SUM:=062bc8fb3856580319857326e0b8752d
+PKG_MD5SUM:=7e6decb4958e8a4890cccac335239f24
+
+PKG_MAINTAINER:=Jo-Philipp Wich <jow@openwrt.org>
 
 include $(INCLUDE_DIR)/package.mk
 
