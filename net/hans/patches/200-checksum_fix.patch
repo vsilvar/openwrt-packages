@@ -1,0 +1,15 @@
+--- a/src/echo.cpp
++++ b/src/echo.cpp
+@@ -115,7 +115,11 @@
+     for (sum = 0; length > 1; length -= 2)
+         sum += *data16++;
+     if (length == 1)
+-        sum += *(unsigned char *)data16;
++    {
++        uint16_t tmp = 0;
++        *(uint8_t*)&tmp = *(uint8_t*)data16;
++        sum += tmp;
++    }
+
+     sum = (sum >> 16) + (sum & 0xffff);
+     sum += (sum >> 16);

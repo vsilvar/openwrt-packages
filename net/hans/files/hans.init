@@ -1,0 +1,28 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2009-2013 OpenWrt.org
+
+START=70
+
+start_instance() {
+	local cfg="$1" enabled listen connect password device mtu
+
+	config_get_bool enabled	"$cfg" 'enabled' '0'
+	config_get listen	"$cfg" 'listen'
+	config_get connect	"$cfg" 'connect'
+	config_get password	"$cfg" 'password'
+	config_get device	"$cfg" 'device'
+	config_get mtu		"$cfg" 'mtu'
+
+	[ "${enabled:-0}" -gt "0" ] && service_start /usr/sbin/hans \
+		${listen:+-s $listen} ${connect:+-c $connect} \
+		${password:+-p $password} ${device:+-d $device} ${mtu:+-m $mtu}
+}
+
+start() {
+	config_load 'hans'
+	config_foreach start_instance hans
+}
+
+stop() {
+	service_stop /usr/sbin/hans
+}
