@@ -1,0 +1,118 @@
+--- a/scan/sane/hpaio.c
++++ b/scan/sane/hpaio.c
+@@ -34,7 +34,6 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+-#include <cups/cups.h>
+ #include "hpmud.h"
+ #include "hpip.h"
+ #include "hp_ipp.h"
+@@ -173,58 +172,6 @@ bugout:
+ }
+ 
+ 
+-static int GetCupsPrinters(char ***printer)
+-{
+-   http_t *http=NULL;     /* HTTP object */
+-   ipp_t *request=NULL;  /* IPP request object */
+-   ipp_t *response=NULL; /* IPP response object */
+-   ipp_attribute_t *attr;     /* Current IPP attribute */
+-   int cnt=0;
+-
+-   /* Connect to the HTTP server */
+-   if ((http = httpConnectEncrypt(cupsServer(), ippPort(), cupsEncryption())) == NULL)
+-      goto bugout;
+-
+-   /* Assemble the IPP request */
+-   request = ippNew();
+-
+-   ippSetOperation( request, CUPS_GET_PRINTERS );
+-   ippSetRequestId( request, 1 );
+-
+-   ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_CHARSET, "attributes-charset", NULL, "utf-8");
+-   ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_LANGUAGE, "attributes-natural-language", NULL, "en");
+-   ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_KEYWORD, "requested-attributes", NULL, "device-uri");
+-
+-   /* Send the request and get a response. */
+-   if ((response = cupsDoRequest(http, request, "/")) == NULL)
+-      goto bugout;
+-
+-   for (attr = ippFirstAttribute ( response ); attr != NULL; attr = ippNextAttribute( response ))
+-   {
+-      /* Skip leading attributes until we hit a printer. */
+-      while (attr != NULL && ippGetGroupTag( attr ) != IPP_TAG_PRINTER)
+-         attr = ippNextAttribute( response );
+-
+-      if (attr == NULL)
+-         break;
+-
+-      while (attr != NULL && ippGetGroupTag( attr ) == IPP_TAG_PRINTER)
+-      {
+-         if (strcmp(ippGetName( attr ), "device-uri") == 0 && ippGetValueTag( attr ) == IPP_TAG_URI && AddCupsList(ippGetString( attr, 0, NULL ), printer) == 0)
+-            cnt++;
+-         attr = ippNextAttribute( response );
+-      }
+-
+-      if (attr == NULL)
+-         break;
+-   }
+-
+-   ippDelete(response);
+-
+- bugout:
+-   return cnt;
+-}
+-
+ static int DevDiscovery(int localOnly)
+ {
+    struct hpmud_model_attributes ma;
+@@ -233,7 +180,6 @@ static int DevDiscovery(int localOnly)
+    char model[HPMUD_LINE_SIZE];
+    char *tail;
+    int i, scan_type, cnt=0, total=0, bytes_read;
+-   char **cups_printer=NULL;     /* list of printers */
+    enum HPMUD_RESULT stat;
+ 
+    stat = hpmud_probe_devices(HPMUD_BUS_ALL, message, sizeof(message), &cnt, &bytes_read);
+@@ -260,29 +206,6 @@ static int DevDiscovery(int localOnly)
+       }
+    }
+ 
+-    /* Check localOnly flag (used by saned) to decide whether to look for network all-in-one scan devices (defined by cups). */
+-	if (!localOnly)
+-	{
+-		cnt = GetCupsPrinters(&cups_printer);
+-		for (i=0; i<cnt; i++)
+-		{
+-			hpmud_query_model(cups_printer[i], &ma);
+-			if (ma.scantype > 0)
+-			{
+-				hpmud_get_uri_model(cups_printer[i], model, sizeof(model));
+-				AddDeviceList(cups_printer[i], model, &DeviceList);
+-				total++;
+-			}
+-			else
+-			{
+-				DBG(6,"unsupported scantype=%d %s\n", ma.scantype, cups_printer[i]);
+-			}
+-			free(cups_printer[i]);
+-		}
+-		if (cups_printer)
+-			free(cups_printer);
+-	}
+-
+ bugout:
+    return total;
+ }
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -59,7 +59,7 @@ else
+ libsane_hpaio_la_LDFLAGS = -version-info 1:0:0
+ endif
+ # The following is a interlibrary dependency that must be compiled first.
+-libsane_hpaio_la_LIBADD = libhpip.la libhpmud.la libhpipp.la $(DBUS_LIBS) -lcups -ldl
++libsane_hpaio_la_LIBADD = libhpip.la libhpmud.la libhpipp.la $(DBUS_LIBS) -ldl
+ #libsane_hpaio_la_CFLAGS = -DWITH_NONAMESPACES -DSOAP_DEBUG
+ libsane_hpaio_la_CFLAGS = $(DBUS_CFLAGS) -Iprotocol
+ endif # SCAN_BUILD
